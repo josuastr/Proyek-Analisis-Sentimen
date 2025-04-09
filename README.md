@@ -12,4 +12,18 @@ Selamat datang di proyek **Sentimen Analisis Review Aplikasi Livin' by Mandiri**
 - Memberikan insight untuk pengembang dalam meningkatkan kualitas aplikasi berdasarkan masukan pengguna.
 - Menerapkan pipeline analisis sentimen end-to-end mulai dari preprocessing hingga inferensi model.
 
+  ## Cara Menjalankan Proyek
+
+```bash
+# Clone repositori ini
+git clone https://github.com/username/Analisis-Sentimen-Livin.git
+cd Analisis-Sentimen-Livin
+
+# Buat dan aktifkan environment (opsional tapi disarankan)
+python -m venv env
+source env/bin/activate  # Windows: .\env\Scripts\activate
+
+# Install dependensi
+pip install -r requirements.txt
+
 
