@@ -16,7 +16,7 @@ Selamat datang di proyek **Sentimen Analisis Review Aplikasi Livin' by Mandiri**
 
 ```bash
 # Clone repositori ini
-git clone https://github.com/username/Analisis-Sentimen-Livin.git
+git clone https://github.com/josuastr/Proyek-Analisis-Sentimen.git
 cd Analisis-Sentimen-Livin
 
 # Buat dan aktifkan environment (opsional tapi disarankan)
