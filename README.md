@@ -243,14 +243,7 @@ Berikut adalah daftar 10 film teratas yang direkomendasikan karena memiliki genr
 
 ##  Evaluation
 
-Sistem rekomendasi ini dievaluasi menggunakan **cosine similarity**, yaitu metrik yang digunakan untuk mengukur tingkat kemiripan antar film berdasarkan representasi vektor dari genre. Genre film diubah menjadi vektor numerik menggunakan teknik **TF-IDF (Term Frequency-Inverse Document Frequency)**, kemudian dihitung kemiripannya dengan rumus sebagai berikut:
-
-$$
-\text{Cosine Similarity} = \frac{A \cdot B}{\|A\| \cdot \|B\|}
-$$
-
-
-di mana \(A\) dan \(B\) adalah vektor TF-IDF dari dua film. Nilai cosine similarity berkisar antara 0 (tidak mirip) hingga 1 (sangat mirip).
+Sistem rekomendasi ini dievaluasi menggunakan **cosine similarity**, yaitu metrik yang digunakan untuk mengukur tingkat kemiripan antar film berdasarkan representasi vektor dari genre. Genre film diubah menjadi vektor numerik menggunakan teknik **TF-IDF (Term Frequency-Inverse Document Frequency)**, kemudian dihitung kemiripannya dengan menggunakan rumus cosine similarity. Nilai cosine similarity berkisar antara 0 (tidak mirip) hingga 1 (sangat mirip).
 
 Pengujian dilakukan menggunakan film **"Me Myself I (2000)"** sebagai input. Sistem berhasil memberikan 10 rekomendasi film lainnya yang seluruhnya memiliki genre **Comedy|Romance** dengan skor similarity maksimal (1.0). Hal ini menunjukkan bahwa sistem mampu memberikan rekomendasi yang **sangat relevan secara tematik**.
 
