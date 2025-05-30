@@ -132,100 +132,95 @@ Angka ini menunjukkan berapa banyak data film valid yang siap digunakan untuk pr
 len(content_data)
 ```
 
+### TF-IDF Vectorization
+
+Pada tahap ini, kita mengubah informasi genre dari dataset MovieLens yang bersifat teks menjadi representasi numerik menggunakan teknik **TF-IDF (Term Frequency-Inverse Document Frequency)**. 
+
+**TF-IDF** adalah metode yang mengukur seberapa penting suatu kata dalam sebuah dokumen relatif terhadap keseluruhan kumpulan dokumen. **Term Frequency (TF)** mengukur frekuensi kemunculan kata dalam dokumen, sementara **Inverse Document Frequency (IDF)** mengukur seberapa jarang kata tersebut muncul di seluruh dokumen. Proses ini memberikan bobot lebih pada kata-kata yang sering muncul dalam dokumen tertentu namun jarang di seluruh dataset, sehingga menghasilkan representasi yang lebih relevan untuk sistem rekomendasi.
+
+Proses ini dilakukan melalui langkah-langkah berikut:
+1. Inisialisasi TfidfVectorizer  
+   Menggunakan `TfidfVectorizer` dari pustaka `sklearn` untuk mengonversi data teks genre film menjadi format numerik.
+
+```python
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+# Inisialisasi TfidfVectorizer
+tf = TfidfVectorizer()
+```
+
+2. Fitting dan Transformasi Data  
+   Fungsi `fit()` digunakan untuk mempelajari genre-genre unik yang ada pada dataset, sedangkan `transform()` menghasilkan matriks TF-IDF yang merepresentasikan film berdasarkan genre mereka.  
+
+   Langkah pertama, `fit()` mempelajari distribusi genre di seluruh dataset, mengenali kata kunci genre yang unik. Setelah itu, `transform()` diterapkan pada data untuk menghasilkan matriks yang menunjukkan seberapa sering dan seberapa penting suatu genre muncul pada setiap film dalam dataset.
+
+```python
+# Melakukan fit pada kolom 'genres'
+tf.fit(content_data['genres'])
+# Melakukan transformasi ke matrix TF-IDF
+tfidf_matrix = tf.transform(content_data['genres'])
+
+```
+
+3. Sparse to Dense Matrix  
+   Matriks TF-IDF yang awalnya sparse diubah menjadi matriks penuh (dense) untuk mempermudah analisis lebih lanjut.  
+
+   Matriks sparse hanya menyimpan nilai-nilai yang tidak nol, sehingga menghemat ruang memori. Namun, untuk tujuan inspeksi dan analisis manual, matriks dense (yang menyimpan semua nilai, termasuk nol) lebih mudah dibaca dan dipahami.
+
+   Pada langkah ini, kita mengubah matriks TF-IDF menjadi matriks penuh menggunakan metode `.todense()`.
+
+```python
+tfidf_matrix.todense()
+```
+TF-IDF Vectorization ini penting karena mengubah data teks menjadi representasi numerik menggunakan TF-IDF, yang memungkinkan sistem rekomendasi menghitung kemiripan antar film dengan memberikan bobot lebih pada genre relevan, serta mempersiapkan data untuk perhitungan kemiripan berbasis konten.
+
 ---
 
 ## Modeling and Result
 
-Sistem rekomendasi film yang dibangun menggunakan pendekatan **Content-Based Filtering**, dengan memanfaatkan informasi **genre** sebagai fitur utama dalam menentukan kemiripan antar film.
+Sistem rekomendasi film ini dibangun menggunakan pendekatan **Content-Based Filtering**, dengan memanfaatkan informasi **genre** sebagai fitur utama dalam menentukan kemiripan antar film.
 
 #### Apa itu Content-Based Filtering?
 **Content-Based Filtering** adalah pendekatan sistem rekomendasi yang menyarankan item (film, lagu, buku, dll.) kepada pengguna berdasarkan kesamaan karakteristik konten item tersebut. Dalam kasus ini, sistem menganalisis fitur-fitur yang melekat pada item — seperti *genre* film — untuk menemukan item lain yang serupa.
 
 Pendekatan ini tidak memerlukan data perilaku pengguna lain, melainkan hanya bergantung pada fitur deskriptif dari item yang bersangkutan.
- 
 
 ### Algoritma yang Digunakan
 
 Model ini menggunakan kombinasi dua metode utama:
 
-1. **TF-IDF Vectorization**  
-   Genre dari setiap film diubah menjadi representasi numerik menggunakan teknik TF-IDF (Term Frequency-Inverse Document Frequency), yang bertujuan untuk memberikan bobot pada genre yang unik dan lebih representatif.
+1. **Cosine Similarity**  
+   Setelah genre diubah menjadi representasi numerik melalui **TF-IDF Vectorization**(yang telah dilakukan di Tahap Data Preparation), kemiripan antar film dihitung menggunakan **Cosine Similarity**. Nilai similarity ini menunjukkan seberapa mirip dua film berdasarkan genre-nya. Nilai cosine similarity berkisar antara 0 (tidak mirip) hingga 1 (sangat mirip).
 
-2. **Cosine Similarity**  
-   Setelah genre diubah ke dalam bentuk vektor, kemiripan antar film dihitung menggunakan cosine similarity. Nilai similarity ini menunjukkan seberapa mirip dua film berdasarkan genre-nya.
+2. **Fungsi Rekomendasi**  
+   Fungsi `recommend_similar_movies()` dibuat untuk memberikan daftar film yang paling mirip dengan film input berdasarkan genre. Fungsi ini memanfaatkan matriks cosine similarity untuk menentukan film yang paling relevan.
 
 ### Langkah-Langkah Modeling
-
-- **TF-IDF Vectorization**:  
-  Digunakan `TfidfVectorizer` dari scikit-learn untuk mengubah teks genre menjadi vektor numerik.  
-  Output: Matriks TF-IDF berukuran `(9708, 19)`, dengan 9708 film dan 19 genre unik.
 
 - **Perhitungan Cosine Similarity**:  
   Matriks cosine similarity dihitung untuk semua pasangan film, menghasilkan tabel kemiripan yang digunakan dalam sistem rekomendasi.
 
 - **Fungsi Rekomendasi**:  
-  Fungsi `recommend_similar_movies()` dibuat untuk memberikan daftar film yang paling mirip dengan film input berdasarkan genre.
+  Fungsi `recommend_similar_movies()` digunakan untuk memberikan daftar film yang paling mirip dengan film input berdasarkan genre.
 
 
-### Proses Implementasi
-
-```python
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-import pandas as pd
-
-# Inisialisasi TfidfVectorizer dan fit pada kolom 'genres'
-tf = TfidfVectorizer()
-tf.fit(content_data['genres'])
-
-# Transformasi data genre menjadi matriks TF-IDF
-tfidf_matrix = tf.transform(content_data['genres'])
-
-# Menghitung cosine similarity antar film
-cosine_sim = cosine_similarity(tfidf_matrix)
-
-# Membuat dataframe kemiripan dengan judul film sebagai index dan kolom
-cosine_sim_df = pd.DataFrame(cosine_sim, index=content_data['title'], columns=content_data['title'])
-
-# Fungsi rekomendasi film berdasarkan cosine similarity
-def recommend_similar_movies(movie_title, top_n=10):
-    if movie_title not in cosine_sim_df.index:
-        return pd.DataFrame()  # Film tidak ditemukan, kembalikan DataFrame kosong
-
-    sim_scores = cosine_sim_df.loc[movie_title]
-    sim_scores = sim_scores.sort_values(ascending=False).iloc[1:top_n+1]  # Exclude film itu sendiri
-
-    similar_movies = sim_scores.index.tolist()
-    similar_movies_df = content_data[content_data['title'].isin(similar_movies)].copy()
-    similar_movies_df['similarity_score'] = similar_movies_df['title'].map(sim_scores)
-    similar_movies_df = similar_movies_df.sort_values(by='similarity_score', ascending=False).reset_index(drop=True)
-
-    return similar_movies_df[['title', 'genres', 'similarity_score']]
-
-# Contoh penggunaan
-recommendations = recommend_similar_movies('Me Myself I (2000)', top_n=10)
-print(recommendations.head(10))
-
-```
-
-### Output Rekomendasi
+### Result
 Berikut adalah daftar 10 film teratas yang direkomendasikan karena memiliki genre yang sama atau sangat mirip dengan film referensi **"Me Myself I (2000)"**, yang bergenre **Comedy** dan **Romance**:
 
-#### Top 10 Rekomendasi Film Mirip 'Me Myself I (2000)' (Content-Based):
+#### Top 10 Rekomendasi Film Mirip *Me Myself I (2000)* (Content-Based)
 
-|    | Title                        | Genres          | Similarity Score |
-|----|------------------------------|------------------|------------------|
-| 0  | Benny & Joon (1993)          | Comedy\|Romance | 1.0              |
-| 1  | Addicted to Love (1997)      | Comedy\|Romance | 1.0              |
-| 2  | Trial and Error (1997)       | Comedy\|Romance | 1.0              |
-| 3  | Forgetting Sarah Marshall (2008) | Comedy\|Romance | 1.0          |
-| 4  | Outsourced (2006)            | Comedy\|Romance | 1.0              |
-| 5  | Made of Honor (2008)         | Comedy\|Romance | 1.0              |
-| 6  | What Happens in Vegas... (2008) | Comedy\|Romance | 1.0           |
-| 7  | Sex and the City (2008)      | Comedy\|Romance | 1.0              |
-| 8  | Watching the Detectives (2007) | Comedy\|Romance | 1.0            |
-| 9  | Bride Wars (2009)            | Comedy\|Romance | 1.0              |
-
+| No | Judul Film                                       | Genre            | Similarity Score |
+|----|--------------------------------------------------|------------------|------------------|
+| 0  | Sabrina (1995)                                   | Comedy\|Romance  | 1.0              |
+| 1  | Two if by Sea (1996)                             | Comedy\|Romance  | 1.0              |
+| 2  | French Twist (Gazon maudit) (1995)               | Comedy\|Romance  | 1.0              |
+| 3  | Bedrooms & Hallways (1998)                       | Comedy\|Romance  | 1.0              |
+| 4  | Black Cat, White Cat (Crna macka, beli macor)    | Comedy\|Romance  | 1.0              |
+| 5  | Lady Eve, The (1941)                             | Comedy\|Romance  | 1.0              |
+| 6  | Fever Pitch (1997)                               | Comedy\|Romance  | 1.0              |
+| 7  | Three to Tango (1999)                            | Comedy\|Romance  | 1.0              |
+| 8  | Bachelor, The (1999)                             | Comedy\|Romance  | 1.0              |
+| 9  | Moonstruck (1987)                                | Comedy\|Romance  | 1.0              |
 
 > Semua film di atas memiliki kemiripan maksimal (1.0) terhadap film referensi karena genre-nya identik, sehingga dianggap sangat relevan dalam konteks content-based filtering berbasis genre.
 
@@ -243,9 +238,27 @@ Berikut adalah daftar 10 film teratas yang direkomendasikan karena memiliki genr
 
 ##  Evaluation
 
-Sistem rekomendasi ini dievaluasi menggunakan **cosine similarity**, yaitu metrik yang digunakan untuk mengukur tingkat kemiripan antar film berdasarkan representasi vektor dari genre. Genre film diubah menjadi vektor numerik menggunakan teknik **TF-IDF (Term Frequency-Inverse Document Frequency)**, kemudian dihitung kemiripannya dengan menggunakan rumus cosine similarity. Nilai cosine similarity berkisar antara 0 (tidak mirip) hingga 1 (sangat mirip).
+**Precision@K** adalah metrik evaluasi yang digunakan untuk mengukur akurasi rekomendasi dalam sistem rekomendasi. Metrik ini mengukur proporsi film yang relevan dari seluruh rekomendasi yang diberikan dalam **top K** rekomendasi.
 
-Pengujian dilakukan menggunakan film **"Me Myself I (2000)"** sebagai input. Sistem berhasil memberikan 10 rekomendasi film lainnya yang seluruhnya memiliki genre **Comedy|Romance** dengan skor similarity maksimal (1.0). Hal ini menunjukkan bahwa sistem mampu memberikan rekomendasi yang **sangat relevan secara tematik**.
+**Relevansi** dalam konteks ini didefinisikan sebagai kemiripan genre antara film yang direkomendasikan dan film yang diinginkan oleh pengguna (input).
+
+Rumus untuk menghitung **Precision@K** adalah sebagai berikut:
+
+$$
+\text{Precision@K} = \frac{\text{Jumlah Film Relevan dalam Top K}}{K}
+$$
+
+Dimana:
+- **Jumlah Film Relevan dalam Top K** adalah jumlah film yang memiliki kesamaan genre dengan film yang diinginkan dalam daftar rekomendasi.
+- **K** adalah jumlah rekomendasi yang diberikan.
+
+Untuk Pendekatan Content-Based Filtering pada kasus ini kita bisa menghitung Precision@K secara manual dengan melihat daftar 10 film yang direkomendasikan oleh sistem.
+
+Hasil Evaluasi:
+- Jumlah Film Relevan (R): 10 (semua film memiliki genre yang relevan),
+- Precision@10 = 10/10 = 1.0
+
+Karena semua film yang direkomendasikan memiliki genre yang relevan (Comedy|Romance), sistem mencapai **Precision@10 = 1.0**, yang menunjukkan performa sistem yang sangat baik dalam memberikan rekomendasi yang relevan, dengan demikian sistem ini cocok untuk pengguna yang menginginkan rekomendasi berdasarkan **kesamaan genre** dan dapat memberikan hasil yang sangat relevan.
 
 ---
 
@@ -288,6 +301,6 @@ Namun, hasil similarity yang terlalu tinggi dan seragam (skor 1.0 untuk semua re
 
 ## Kesimpulan
 
-Model yang dikembangkan telah secara efektif menjawab tantangan bisnis yang diidentifikasi, dan mampu memenuhi tujuan proyek dengan pendekatan yang sesuai. Evaluasi berbasis cosine similarity menunjukkan bahwa sistem memberikan rekomendasi yang relevan secara konten dan personal. Untuk pengembangan lanjutan, sistem dapat ditingkatkan dengan memperluas fitur konten dan mengadopsi pendekatan hybrid untuk hasil yang lebih bervariasi dan kontekstual.
+Model yang dikembangkan telah secara efektif menjawab tantangan bisnis yang diidentifikasi, dan mampu memenuhi tujuan proyek dengan pendekatan yang sesuai. Hasil evaluasi menggunakan metrik Precision@10 menunjukkan performa yang sangat baik, dengan seluruh film dalam daftar rekomendasi memiliki genre yang relevan dengan film target. Hal ini menunjukkan bahwa sistem mampu memahami kesamaan konten secara efektif,dan sistem memberikan rekomendasi yang relevan secara konten dan personal. Untuk pengembangan lanjutan, sistem dapat ditingkatkan dengan memperluas fitur konten dan mengadopsi pendekatan hybrid untuk hasil yang lebih bervariasi dan kontekstual.
 
 
